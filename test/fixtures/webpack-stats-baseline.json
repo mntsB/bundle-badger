@@ -1,0 +1,43 @@
+{
+  "assets": [
+    {
+      "name": "main.js",
+      "size": 142300,
+      "chunks": [0],
+      "chunkNames": ["main"]
+    },
+    {
+      "name": "vendor.js",
+      "size": 89200,
+      "chunks": [1],
+      "chunkNames": ["vendor"]
+    },
+    {
+      "name": "styles.css",
+      "size": 11800,
+      "chunks": [0],
+      "chunkNames": ["main"]
+    },
+    {
+      "name": "logo.png",
+      "size": 5432,
+      "chunks": [],
+      "chunkNames": []
+    }
+  ],
+  "chunks": [
+    { "id": 0, "names": ["main"], "initial": true, "entry": true },
+    { "id": 1, "names": ["vendor"], "initial": true }
+  ],
+  "entrypoints": {
+    "main": {
+      "chunks": [0, 1],
+      "assets": [
+        { "name": "main.js" },
+        { "name": "vendor.js" }
+      ]
+    }
+  },
+  "builtAt": 1703030400000,
+  "time": 1100
+}
