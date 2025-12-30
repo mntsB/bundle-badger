@@ -1,7 +1,7 @@
 import typescript from "@rollup/plugin-typescript";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
-import { writeFileSync } from "fs";
+import { writeFileSync, mkdirSync } from "fs";
 
 /**
  * Plugin to generate bundle stats for bundle-badger
@@ -29,6 +29,7 @@ function bundleStats() {
         }
       }
 
+      mkdirSync("dist", { recursive: true });
       writeFileSync("dist/stats.json", JSON.stringify(stats, null, 2));
     },
   };
