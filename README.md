@@ -1,6 +1,6 @@
 # Bundle Badger
 
-A GitLab-native bundle size tracking tool. Runs in GitLab CI, compares bundle sizes between MR and baseline, and posts a report as an MR comment.
+A bundle size tracking tool for GitHub and GitLab. Runs in CI, compares bundle sizes between PR/MR and baseline, and posts a report as a comment.
 
 ## Requirements
 
@@ -38,7 +38,55 @@ bundle-badger --stats ./dist/stats.json --dry-run
 bundle-badger --stats ./dist/stats.json --format json
 ```
 
-## GitLab CI Integration
+## CI Integration
+
+### GitHub Actions
+
+Add to your workflow (e.g., `.github/workflows/bundle-report.yml`):
+
+```yaml
+name: Bundle Report
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  bundle-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and analyze
+        run: npm run build
+
+      - name: Report bundle size
+        run: npx bundle-badger --stats ./dist/stats.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+**Environment Variables** (auto-detected in GitHub Actions):
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `GITHUB_TOKEN` | GitHub token for API access | Yes |
+| `GITHUB_REPOSITORY` | Repository name (owner/repo) | Auto-detected |
+| `GITHUB_REF` | PR reference | Auto-detected |
+
+### GitLab CI
 
 Add to your `.gitlab-ci.yml`:
 
@@ -54,9 +102,7 @@ bundle-report:
     - if: $CI_MERGE_REQUEST_IID
 ```
 
-### Environment Variables
-
-When running in GitLab CI, these are auto-detected:
+**Environment Variables** (auto-detected in GitLab CI):
 
 | Variable | Description | Required |
 |----------|-------------|----------|

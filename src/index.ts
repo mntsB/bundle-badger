@@ -10,6 +10,12 @@ import {
   isMergeRequestPipeline,
 } from "./gitlab.js";
 import {
+  getGitHubConfigFromEnv,
+  postPullRequestComment,
+  isGitHubActions,
+  isPullRequestWorkflow,
+} from "./github.js";
+import {
   readJsonFile,
   parseThreshold,
   exceedsThreshold,
@@ -19,7 +25,7 @@ const program = new Command();
 
 program
   .name("bundle-badger")
-  .description("GitLab-native bundle size tracking tool")
+  .description("Bundle size tracking tool for GitHub and GitLab")
   .version("0.1.0")
   .requiredOption("-s, --stats <path>", "Path to stats JSON file")
   .option("-b, --baseline <path>", "Path to baseline stats JSON file")
@@ -27,7 +33,7 @@ program
     "-t, --threshold <value>",
     "Size increase threshold (e.g., 5%, 10kB)"
   )
-  .option("-d, --dry-run", "Print report without posting to GitLab")
+  .option("-d, --dry-run", "Print report without posting to PR/MR")
   .option("-f, --format <type>", "Output format: markdown or json", "markdown")
   .option("--changed-only", "Only show changed files in report")
   .option("--max-assets <number>", "Maximum assets to show in report", "20")
@@ -118,8 +124,32 @@ async function run(options: CLIOptions): Promise<void> {
     console.log(report);
     console.log(chalk.dim("--- End Preview ---"));
     console.log("");
-    console.log(chalk.yellow("Dry run mode: not posting to GitLab"));
+    console.log(chalk.yellow("Dry run mode: not posting to PR/MR"));
+  } else if (isGitHubActions() && isPullRequestWorkflow()) {
+    // GitHub Actions - post to PR
+    const config = getGitHubConfigFromEnv();
+
+    if (!config) {
+      console.log(chalk.yellow("⚠"), "Missing GitHub configuration:");
+      if (!process.env.GITHUB_TOKEN) {
+        console.log("  - GITHUB_TOKEN is not set");
+      }
+      if (!process.env.GITHUB_REPOSITORY) {
+        console.log("  - GITHUB_REPOSITORY is not set");
+      }
+      console.log("");
+      console.log("Report:");
+      console.log(report);
+    } else {
+      console.log(chalk.blue("Posting report to GitHub PR..."));
+      const { commentId, updated } = await postPullRequestComment(config, report);
+      console.log(
+        chalk.green("✓"),
+        updated ? `Updated comment #${commentId}` : `Created comment #${commentId}`
+      );
+    }
   } else if (isGitLabCI() && isMergeRequestPipeline()) {
+    // GitLab CI - post to MR
     const config = getGitLabConfigFromEnv();
 
     if (!config) {
@@ -139,7 +169,7 @@ async function run(options: CLIOptions): Promise<void> {
       );
     }
   } else {
-    // Not in GitLab CI or not a MR pipeline - just print the report
+    // Not in CI or not a PR/MR pipeline - just print the report
     console.log("");
     console.log(report);
   }

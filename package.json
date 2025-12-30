@@ -1,7 +1,7 @@
 {
   "name": "bundle-badger",
   "version": "0.1.0",
-  "description": "GitLab-native bundle size tracking tool",
+  "description": "Bundle size tracking tool for GitHub and GitLab",
   "type": "module",
   "bin": {
     "bundle-badger": "./dist/index.js"
@@ -20,9 +20,11 @@
     "size",
     "webpack",
     "vite",
+    "github",
     "gitlab",
     "ci",
-    "tracking"
+    "tracking",
+    "github-actions"
   ],
   "author": "Mantas Buga",
   "license": "MIT",
