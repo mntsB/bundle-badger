@@ -65,6 +65,13 @@ export function parseRollupBundle(data: unknown): BuildStats {
   };
 }
 
+interface RollupStatsEntry {
+  size?: number;
+  renderedLength?: number;
+  isEntry?: boolean;
+  isEntrypoint?: boolean;
+}
+
 /**
  * Parse Rollup stats with pre-calculated sizes
  *
@@ -76,7 +83,7 @@ export function parseRollupStats(data: unknown): BuildStats {
     throw new Error("Invalid Rollup stats: expected an object");
   }
 
-  const stats = data as Record<string, any>;
+  const stats = data as Record<string, RollupStatsEntry | number>;
   const assets: Asset[] = [];
 
   for (const [fileName, fileData] of Object.entries(stats)) {
