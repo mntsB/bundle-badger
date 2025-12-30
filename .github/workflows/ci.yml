@@ -40,8 +40,30 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Save PR stats
+        if: github.event_name == 'pull_request'
+        run: cp dist/stats.json pr-stats.json
+
+      - name: Build baseline from main
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: |
+          git fetch origin main:main 2>/dev/null || git fetch origin master:master 2>/dev/null || exit 0
+          BASELINE_BRANCH=$(git branch --list main master | head -1 | xargs)
+          if [ -n "$BASELINE_BRANCH" ]; then
+            git checkout $BASELINE_BRANCH
+            npm run build
+            cp dist/stats.json baseline-stats.json
+            git checkout -
+          fi
+
       - name: Report bundle size
         if: github.event_name == 'pull_request'
-        run: node dist/index.js --stats dist/stats.json
+        run: |
+          if [ -f baseline-stats.json ]; then
+            node dist/index.js --stats pr-stats.json --baseline baseline-stats.json
+          else
+            node dist/index.js --stats pr-stats.json
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
