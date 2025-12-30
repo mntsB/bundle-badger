@@ -6,6 +6,10 @@ on:
   push:
     branches: [main, master]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   test:
     name: Test & Lint
@@ -35,3 +39,9 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Report bundle size
+        if: github.event_name == 'pull_request'
+        run: node dist/index.js --stats dist/stats.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
