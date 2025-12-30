@@ -1,0 +1,37 @@
+{
+  "index.js": {
+    "type": "chunk",
+    "fileName": "index.js",
+    "code": "console.log('Hello from rollup');const module={exports:{}};module.exports=function(){return'test'};export default module.exports;",
+    "isEntry": true,
+    "isDynamicEntry": false,
+    "imports": [],
+    "dynamicImports": [],
+    "modules": {
+      "src/index.js": {
+        "renderedLength": 45,
+        "originalLength": 67,
+        "code": "console.log('Hello from rollup');"
+      }
+    }
+  },
+  "vendor.js": {
+    "type": "chunk",
+    "fileName": "vendor.js",
+    "code": "var react=function(){return{createElement:function(){}}};export{react};",
+    "isEntry": false,
+    "isDynamicEntry": false,
+    "imports": [],
+    "dynamicImports": []
+  },
+  "styles.css": {
+    "type": "asset",
+    "fileName": "styles.css",
+    "source": "body{margin:0;padding:0;font-family:Arial,sans-serif}.container{max-width:1200px;margin:0 auto}"
+  },
+  "logo.svg": {
+    "type": "asset",
+    "fileName": "logo.svg",
+    "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"40\" fill=\"blue\"/></svg>"
+  }
+}

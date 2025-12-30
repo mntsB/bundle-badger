@@ -87,6 +87,37 @@ export interface ViteManifestEntry {
 }
 
 /**
+ * Rollup output bundle structure
+ */
+export interface RollupOutputBundle {
+  [fileName: string]: RollupOutputChunk | RollupOutputAsset;
+}
+
+export interface RollupOutputChunk {
+  type: "chunk";
+  fileName: string;
+  code: string;
+  isEntry: boolean;
+  isDynamicEntry: boolean;
+  facadeModuleId?: string | null;
+  imports: string[];
+  dynamicImports: string[];
+  modules?: Record<string, RollupModule>;
+}
+
+export interface RollupOutputAsset {
+  type: "asset";
+  fileName: string;
+  source: string | Uint8Array;
+}
+
+export interface RollupModule {
+  renderedLength: number;
+  originalLength: number;
+  code: string | null;
+}
+
+/**
  * Parser function type
  */
 export type StatsParser = (data: unknown) => BuildStats;

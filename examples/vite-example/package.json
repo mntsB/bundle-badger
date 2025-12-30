@@ -1,0 +1,18 @@
+{
+  "name": "vite-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Example Vite project using Bundle Badger",
+  "scripts": {
+    "build": "vite build",
+    "build:stats": "vite build && rollup-plugin-visualizer --template json --filename stats.json",
+    "badger": "bundle-badger --stats ./dist/.vite/manifest.json --dry-run",
+    "badger:stats": "bundle-badger --stats ./stats.json --dry-run"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "rollup-plugin-visualizer": "^5.11.0",
+    "bundle-badger": "file:../.."
+  }
+}

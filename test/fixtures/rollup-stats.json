@@ -1,0 +1,18 @@
+{
+  "index.js": {
+    "size": 42500,
+    "isEntry": true
+  },
+  "vendor.js": {
+    "size": 156789,
+    "isEntry": false
+  },
+  "styles.css": {
+    "size": 8234,
+    "isEntry": false
+  },
+  "lazy-module.js": {
+    "size": 12456,
+    "isEntry": false
+  }
+}

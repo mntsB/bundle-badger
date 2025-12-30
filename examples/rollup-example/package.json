@@ -1,0 +1,20 @@
+{
+  "name": "rollup-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Example Rollup project using Bundle Badger",
+  "scripts": {
+    "build": "rollup -c",
+    "build:stats": "rollup -c --plugin rollup-plugin-bundle-stats",
+    "badger": "bundle-badger --stats ./dist/stats.json --dry-run"
+  },
+  "devDependencies": {
+    "rollup": "^4.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-terser": "^0.4.0",
+    "rollup-plugin-visualizer": "^5.11.0",
+    "bundle-badger": "file:../.."
+  }
+}

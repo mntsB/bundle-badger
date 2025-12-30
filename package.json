@@ -12,7 +12,8 @@
     "dev": "rollup -c -w",
     "test": "vitest",
     "lint": "eslint src/",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "bundle",
@@ -23,8 +24,16 @@
     "ci",
     "tracking"
   ],
-  "author": "",
+  "author": "Mantas Buga",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/mbuga/bundle-badger.git"
+  },
+  "homepage": "https://gitlab.com/mbuga/bundle-badger#readme",
+  "bugs": {
+    "url": "https://gitlab.com/mbuga/bundle-badger/-/issues"
+  },
   "dependencies": {
     "chalk": "^5.3.0",
     "commander": "^12.1.0"
@@ -46,6 +55,7 @@
     "node": ">=18"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ]
 }
