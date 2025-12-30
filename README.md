@@ -172,8 +172,8 @@ Bundle Badger posts a markdown report to your MR:
 
 ```bash
 # Clone the repository
-git clone https://gitlab.com/mbuga/bundle-badger.git
-cd bundle-badger
+git clone https://github.com/mntsB/bundle-tracker.git
+cd bundle-tracker
 
 # Install dependencies
 npm install
