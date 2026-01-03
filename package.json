@@ -7,6 +7,7 @@
     "bundle-badger": "./dist/index.js"
   },
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
@@ -30,11 +31,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mntsB/bundle-tracker.git"
+    "url": "git+https://github.com/mntsB/bundle-badger.git"
   },
-  "homepage": "https://github.com/mntsB/bundle-tracker#readme",
+  "homepage": "https://github.com/mntsB/bundle-badger#readme",
   "bugs": {
-    "url": "https://github.com/mntsB/bundle-tracker/issues"
+    "url": "https://github.com/mntsB/bundle-badger/issues"
   },
   "dependencies": {
     "chalk": "^5.3.0",

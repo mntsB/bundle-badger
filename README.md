@@ -1,16 +1,23 @@
 # Bundle Badger
 
-A bundle size tracking tool for GitHub and GitLab. Runs in CI, compares bundle sizes between PR/MR and baseline, and posts a report as a comment.
+[![npm version](https://img.shields.io/npm/v/bundle-badger.svg)](https://www.npmjs.com/package/bundle-badger)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org/)
 
-## Requirements
+A GitLab-native bundle size tracking tool. Runs in GitLab CI, compares bundle sizes between merge requests and baseline, and posts a report as an MR comment.
 
-- Node.js >= 18
-- npm
+## Features
+
+- **Auto-detection** - Automatically detects Webpack, Vite, and Rollup output formats
+- **Size comparison** - Compare current build against a baseline
+- **Threshold enforcement** - Fail CI if bundle size increases beyond a threshold
+- **GitLab integration** - Posts/updates MR comments automatically
+- **Multiple formats** - Markdown or JSON output
 
 ## Installation
 
 ```bash
-npm install bundle-badger
+npm install --save-dev bundle-badger
 ```
 
 Or install globally:
@@ -22,71 +29,32 @@ npm install -g bundle-badger
 ## Quick Start
 
 ```bash
-# Basic usage - analyze a stats file
+# Analyze a stats file
 bundle-badger --stats ./dist/stats.json
 
 # Compare against a baseline
 bundle-badger --stats ./dist/stats.json --baseline ./baseline/stats.json
 
-# Set a threshold (exit code 1 if exceeded)
+# Fail if size increases more than 5%
 bundle-badger --stats ./dist/stats.json --threshold 5%
 
-# Dry run (no GitLab comment)
+# Dry run (print report, don't post to GitLab)
 bundle-badger --stats ./dist/stats.json --dry-run
-
-# JSON output
-bundle-badger --stats ./dist/stats.json --format json
 ```
 
-## CI Integration
+## CLI Options
 
-### GitHub Actions
+| Option                    | Description                            |
+| ------------------------- | -------------------------------------- |
+| `-s, --stats <path>`      | Path to stats JSON file (required)     |
+| `-b, --baseline <path>`   | Path to baseline stats for comparison  |
+| `-t, --threshold <value>` | Size threshold, e.g. `5%` or `10kB`    |
+| `-d, --dry-run`           | Print report without posting to GitLab |
+| `-f, --format <type>`     | Output format: `markdown` or `json`    |
+| `--changed-only`          | Only show changed files in report      |
+| `--max-assets <n>`        | Maximum assets to show (default: 20)   |
 
-Add to your workflow (e.g., `.github/workflows/bundle-report.yml`):
-
-```yaml
-name: Bundle Report
-
-on:
-  pull_request:
-    branches: [main]
-
-permissions:
-  contents: read
-  pull-requests: write
-
-jobs:
-  bundle-report:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build and analyze
-        run: npm run build
-
-      - name: Report bundle size
-        run: npx bundle-badger --stats ./dist/stats.json
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
-
-**Environment Variables** (auto-detected in GitHub Actions):
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `GITHUB_TOKEN` | GitHub token for API access | Yes |
-| `GITHUB_REPOSITORY` | Repository name (owner/repo) | Auto-detected |
-| `GITHUB_REF` | PR reference | Auto-detected |
-
-### GitLab CI
+## GitLab CI Integration
 
 Add to your `.gitlab-ci.yml`:
 
@@ -102,43 +70,60 @@ bundle-report:
     - if: $CI_MERGE_REQUEST_IID
 ```
 
-**Environment Variables** (auto-detected in GitLab CI):
+### With Baseline Comparison
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `GITLAB_TOKEN` | Personal access token with `api` scope | Yes |
-| `CI_API_V4_URL` | GitLab API URL | Auto-detected |
-| `CI_PROJECT_ID` | Project ID | Auto-detected |
-| `CI_MERGE_REQUEST_IID` | MR number | Auto-detected |
-| `CI_COMMIT_REF_NAME` | Branch name | Auto-detected |
+```yaml
+bundle-report:
+  stage: test
+  image: node:20
+  script:
+    - npm ci
+    - npm run build
+    # Fetch baseline from main branch artifacts or cache
+    - npx bundle-badger --stats ./dist/stats.json --baseline ./baseline/stats.json --threshold 5%
+  rules:
+    - if: $CI_MERGE_REQUEST_IID
+```
+
+### Environment Variables
+
+| Variable               | Description                            | Required      |
+| ---------------------- | -------------------------------------- | ------------- |
+| `GITLAB_TOKEN`         | Personal access token with `api` scope | Yes           |
+| `CI_API_V4_URL`        | GitLab API URL                         | Auto-detected |
+| `CI_PROJECT_ID`        | Project ID                             | Auto-detected |
+| `CI_MERGE_REQUEST_IID` | MR number                              | Auto-detected |
 
 ## Supported Bundlers
 
-- **Webpack** - Reads `stats.json` generated by webpack
-- **Vite** - Reads build output manifest
+### Webpack
 
-### Webpack Setup
-
-Enable stats output in your webpack config:
+Generate stats with [webpack-bundle-analyzer](https://www.npmjs.com/package/webpack-bundle-analyzer):
 
 ```javascript
 // webpack.config.js
-const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 
 module.exports = {
   plugins: [
     new BundleAnalyzerPlugin({
-      analyzerMode: 'disabled',
+      analyzerMode: "disabled",
       generateStatsFile: true,
-      statsFilename: 'stats.json',
+      statsFilename: "stats.json",
     }),
   ],
 };
 ```
 
-### Vite Setup
+Or use webpack's built-in stats:
 
-Vite generates a manifest by default in build mode:
+```bash
+webpack --json > stats.json
+```
+
+### Vite
+
+Enable manifest generation:
 
 ```javascript
 // vite.config.js
@@ -149,124 +134,88 @@ export default {
 };
 ```
 
-## Report Format
+Then use the manifest file:
+
+```bash
+bundle-badger --stats ./dist/.vite/manifest.json
+```
+
+For detailed size analysis, use [rollup-plugin-visualizer](https://www.npmjs.com/package/rollup-plugin-visualizer):
+
+```javascript
+// vite.config.js
+import { visualizer } from "rollup-plugin-visualizer";
+
+export default {
+  plugins: [visualizer({ filename: "stats.json", template: "raw-data" })],
+};
+```
+
+### Rollup
+
+Use [rollup-plugin-visualizer](https://www.npmjs.com/package/rollup-plugin-visualizer):
+
+```javascript
+// rollup.config.js
+import { visualizer } from "rollup-plugin-visualizer";
+
+export default {
+  plugins: [visualizer({ filename: "stats.json", template: "raw-data" })],
+};
+```
+
+## Report Example
 
 Bundle Badger posts a markdown report to your MR:
 
-```markdown
+```
 ## Bundle Badger Report
 
-| File      | Before   | After    | Diff               |
-|-----------|----------|----------|--------------------|
-| main.js   | 142.3 kB | 148.7 kB | +6.4 kB (+4.5%)    |
-| vendor.js | 89.2 kB  | 89.2 kB  | 0                  |
+| File        | Before   | After    | Diff                  |
+|-------------|----------|----------|-----------------------|
+| main.js     | 142.3 kB | 148.7 kB | +6.4 kB (+4.5%) 🔴    |
+| vendor.js   | 89.2 kB  | 89.2 kB  | 0 ✅                  |
+| styles.css  | -        | 12.1 kB  | +12.1 kB 🆕           |
 
-**Total:** 243.6 kB -> 249.7 kB (+6.1 kB / +2.5%)
+**Total:** 231.5 kB → 250.0 kB (+18.5 kB / +8.0%)
+
+3 files changed, 1 added
 ```
 
----
+### Status Indicators
 
-## Development
+| Icon | Meaning             |
+| ---- | ------------------- |
+| 🆕   | New file added      |
+| 🗑️   | File removed        |
+| ✅   | Unchanged           |
+| 🔴   | Size increased >10% |
+| 🟠   | Size increased >5%  |
+| 🟡   | Small increase      |
+| 🟢   | Size decreased      |
 
-### Setup
+## Contributing
 
 ```bash
 # Clone the repository
-git clone https://github.com/mntsB/bundle-tracker.git
-cd bundle-tracker
+git clone https://github.com/mntsB/bundle-badger.git
+cd bundle-badger
 
 # Install dependencies
 npm install
-```
 
-### Commands
-
-```bash
-# Build the project
+# Build
 npm run build
 
-# Watch mode (rebuild on changes)
-npm run dev
-
-# Run CLI in development
-npm run dev -- --stats ./test/fixtures/stats.json
-
-# Type check
-npm run typecheck
+# Run tests
+npm test
 
 # Lint
 npm run lint
 
-# Run tests
-npm test
-```
-
-### Project Structure
-
-```
-bundle-badger/
-├── src/
-│   ├── index.ts          # CLI entry point (commander)
-│   ├── parsers/
-│   │   ├── index.ts      # Parser exports
-│   │   ├── types.ts      # Type definitions
-│   │   ├── webpack.ts    # Webpack stats parser
-│   │   └── vite.ts       # Vite manifest parser
-│   ├── compare.ts        # Diff calculation logic
-│   ├── report.ts         # Markdown report generation
-│   ├── gitlab.ts         # GitLab API client
-│   └── utils.ts          # Utility functions
-├── test/
-│   └── fixtures/         # Sample stats.json files
-├── dist/                 # Built output
-├── package.json
-├── tsconfig.json
-├── rollup.config.js
-└── CLAUDE.md
-```
-
-### Build
-
-The project uses Rollup to bundle the CLI:
-
-```bash
-npm run build
-```
-
-This outputs `dist/index.js` with a shebang for CLI execution.
-
-### Testing
-
-Tests use Vitest:
-
-```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm test -- --watch
-
-# Run tests with coverage
-npm test -- --coverage
-```
-
-### Linting
-
-```bash
-# Run ESLint
-npm run lint
-
-# Fix auto-fixable issues
-npm run lint -- --fix
-```
-
-### Type Checking
-
-```bash
+# Type check
 npm run typecheck
 ```
-
----
 
 ## License
 
